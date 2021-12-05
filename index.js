@@ -205,4 +205,6 @@ io.on("connect", async (socket) => {
 });
 app.use(express.json());
 app.get("/", (req, res) => res.send("Hello World"));
-server.listen(process.env.PORT || PORT);
+server.listen(process.env.PORT || PORT, () => {
+  console.log(`Run on port ${PORT} `);
+});
