@@ -9,7 +9,7 @@ const http = require("http");
 const server = http.createServer(app);
 //Setup Socket
 const { Server } = require("socket.io");
-const io = new Server(server, { cors: { origin: ["*"] } });
+const io = new Server(server, { cors: { origin: "*" } });
 // Atlas
 const { createRoom } = require("./controllers/room");
 const mongoose = require("mongoose");
