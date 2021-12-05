@@ -8,8 +8,7 @@ const _global = require("./_global");
 const http = require("http");
 const server = http.createServer(app);
 //Setup Socket
-const { Server } = require("socket.io");
-const io = new Server(server, { cors: { origin: [_global.CLIENT_URL] } });
+const io = require("socket.io").listen(server);
 // Atlas
 const { createRoom } = require("./controllers/room");
 const mongoose = require("mongoose");
@@ -203,9 +202,6 @@ io.on("connect", async (socket) => {
   });
   socket.on("forfeit", forfeit);
 });
-
 app.use(express.json());
 
-server.listen(process.env.PORT || PORT, () => {
-  console.log(`Running on port ${PORT}`);
-});
+server.listen(process.env.PORT || 3000);
