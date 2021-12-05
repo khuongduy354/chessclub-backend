@@ -1,5 +1,5 @@
 const _global = {
-  SERVER_URL: "http://localhost:8000",
-  CLIENT_URL: "http://localhost:3000",
+  SERVER_URL: "https://chess-club-backend.herokuapp.com/",
+  CLIENT_URL: "https://chess-club-d527d.web.app/",
 };
 module.exports = _global;
