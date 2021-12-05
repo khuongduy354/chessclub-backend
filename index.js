@@ -204,5 +204,5 @@ io.on("connect", async (socket) => {
   socket.on("forfeit", forfeit);
 });
 app.use(express.json());
-
+app.get("/", (req, res) => res.send("Hello World"));
 server.listen(process.env.PORT || PORT);
