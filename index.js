@@ -12,10 +12,10 @@ const { Server } = require("socket.io");
 const io = new Server(server, { cors: { origin: "*" } });
 // Atlas
 const { createRoom } = require("./controllers/room");
-const mongoose = require("mongoose");
-const mongoDB =
-  "mongodb+srv://khuongduy354:1234567891duy@cluster0.tnjsm.mongodb.net/chessclub?retryWrites=true&w=majority";
-mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });
+// const mongoose = require("mongoose");
+// const mongoDB =
+//   "mongodb+srv://khuongduy354:1234567891duy@cluster0.tnjsm.mongodb.net/chessclub?retryWrites=true&w=majority";
+// mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });
 // Temporary Usernames
 const userNameList = [];
 const addUser = (userName) => {

@@ -6,7 +6,6 @@
   "scripts": {
     "devstart": "nodemon ./bin/www",
     "start": "node ./index.js",
-    "serverstart": "DEBUG=express-locallibrary-tutorial:* npm run devstart",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "khuongduy",
