@@ -1,5 +1,4 @@
-const Room = require("../models/roomModel");
-const mongoose = require("mongoose");
+const { Room } = require("../helper/mongo");
 module.exports = {
   createRoom: async (roomName) => {
     try {

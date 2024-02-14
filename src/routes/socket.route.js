@@ -11,7 +11,7 @@ const {
   disconnect,
 } = require("../controllers/socket.controller");
 
-export const setupSocketRoute = (io) => {
+const setupSocketRoute = (io) => {
   io.on("connect", async (socket) => {
     socket.on("disconnect", disconnect);
     // room and chat
@@ -23,7 +23,6 @@ export const setupSocketRoute = (io) => {
     //     from: "System",
     //     content: content,
     //   });
-    });
     // pregame and mid game
     socket.on("ready", ready);
     socket.on("move", movePiece);
@@ -53,3 +52,5 @@ export const setupSocketRoute = (io) => {
     // });
   });
 };
+
+module.exports = { setupSocketRoute };

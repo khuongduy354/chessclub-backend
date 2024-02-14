@@ -1,5 +1,5 @@
-const Room = require("./models/roomModel");
-const { createRoom } = require("./controllers/room");
+const { Room } = require("../helper/mongo");
+const { createRoom } = require("../helper/room");
 
 const userNameList = [];
 const addUser = (userName) => {
@@ -7,7 +7,7 @@ const addUser = (userName) => {
 };
 const { Chess } = require("chess.js");
 
-export const {
+const {
   disconnecting,
   joinRoom,
   sendMessage,
@@ -173,4 +173,17 @@ export const {
       content: `${userName} forfeited`,
     });
   },
+};
+
+module.exports = {
+  disconnecting,
+  joinRoom,
+  sendMessage,
+  ready,
+  movePiece,
+  cancelSide,
+  draw,
+  checkMated,
+  forfeit,
+  disconnect,
 };

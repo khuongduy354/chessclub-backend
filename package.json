@@ -11,13 +11,14 @@
   "author": "khuongduy",
   "license": "ISC",
   "devDependencies": {
+    "dotenv": "^16.4.4",
     "express": "^4.17.1"
   },
   "dependencies": {
     "chess.js": "^0.12.0",
-    "mongoose": "^6.0.13",
     "express": "^4.17.1",
     "http": "0.0.1-security",
+    "mongoose": "^6.0.13",
     "socket.io": "^4.4.0"
   }
 }
