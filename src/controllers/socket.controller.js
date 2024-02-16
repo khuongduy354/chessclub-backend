@@ -1,11 +1,16 @@
-const { Room } = require("../helper/mongo");
-const { createRoom } = require("../helper/room");
-
 const userNameList = [];
 const addUser = (userName) => {
   userNameList.push(userName);
 };
+
 const { Chess } = require("chess.js");
+const {
+  deleteRoom,
+  findAndPatchRoom,
+  findRoomByName,
+  createRoom,
+} = require("../helper/room");
+
 class SocketController {
   constructor(io, socket) {
     this.socket = socket;
@@ -18,7 +23,7 @@ class SocketController {
     for (const _room of socketRooms) {
       let sockets = await this.io.in(_room).fetchSockets();
       if (!sockets.length) {
-        await Room.deleteOne({ name: _room });
+        deleteRoom(_room);
       }
     }
 
@@ -37,13 +42,13 @@ class SocketController {
       addUser(userName);
 
       // join room
-      const roomExist = await Room.findOne({ name: roomName });
+      const roomExist = findRoomByName(roomName);
       if (roomExist) {
         this.socket.join(roomName);
         return;
       } else {
-        const { result, error } = await createRoom(roomName);
-        if (error) return cb({ error: "Can't create room" });
+        const newRoom = createRoom(roomName);
+        if (!newRoom) return cb({ error: "Can't create room" });
         this.socket.join(roomName);
         this.io.in(roomName).emit("receive-message", {
           from: "System",
@@ -64,26 +69,18 @@ class SocketController {
   };
 
   ready = async (userName, roomName, side, cb) => {
-    const room = await Room.findOne({ name: roomName });
+    const room = findRoomByName(roomName);
     try {
       //  assign player to black or white slot if empty
       if ((side == "black" && room.black) || (side == "white" && room.white)) {
         return cb({ error: "Slot is chosen" });
       }
       if (side == "black") {
-        const updated = await Room.findOneAndUpdate(
-          { name: roomName },
-          { black: userName },
-          { new: true }
-        );
+        findAndPatchRoom(roomName, { black: userName });
         this.io.in(roomName).emit("chose-black", userName);
       }
       if (side == "white") {
-        const updated = await Room.findOneAndUpdate(
-          { name: roomName },
-          { white: userName },
-          { new: true }
-        );
+        findAndPatchRoom(roomName, { white: userName });
         this.io.in(roomName).emit("chose-white", userName);
       }
 
@@ -95,15 +92,12 @@ class SocketController {
       cb({ success: "Side chosen" });
 
       //   start the game if both black and white are occupied
-      const newRoom = await Room.findOne({ name: roomName });
+      const newRoom = findRoomByName(roomName);
       if (newRoom.black && newRoom.white) {
         this.io.in(roomName).emit("start-game");
         const newGame = new Chess();
-        await Room.findOneAndUpdate(
-          { name: roomName },
-          { game: newGame.fen() }
-        );
-        this.io.to(roomName).emit("update-game", newGame.fen());
+        findAndPatchRoom(roomName, { game: newGame.fen() });
+        this.io.in(roomName).emit("update-game", newGame.fen());
       }
     } catch (e) {
       console.log(e);
@@ -128,37 +122,29 @@ class SocketController {
   cancelSide = async (side, roomName) => {
     // cancel side selection
     if (side === "black") {
-      await Room.findOneAndUpdate({ name: roomName }, { black: null });
+      findAndPatchRoom(roomName, { black: null });
       this.io.in(roomName).emit("chose-black", null);
     }
     if (side === "white") {
-      await Room.findOneAndUpdate({ name: roomName }, { white: null });
+      findAndPatchRoom(roomName, { white: null });
       this.io.in(roomName).emit("chose-white", null);
     }
   };
   draw = async (roomName) => {
-    const room = await Room.findOneAndUpdate(
-      { name: roomName },
-      { black: null, white: null }
-    );
+    findAndPatchRoom(roomName, { black: null, white: null });
     this.io.in(roomName).emit("chose-black", null);
     this.io.in(roomName).emit("chose-white", null);
     this.io.in(roomName).emit("end-game", { draw: true });
   };
   checkMated = async (lostSide, roomName) => {
-    const room = await Room.findOneAndUpdate(
-      { name: roomName },
-      { black: null, white: null }
-    );
+    findAndPatchRoom(roomName, { black: null, white: null });
     this.io.in(roomName).emit("chose-black", null);
     this.io.in(roomName).emit("chose-white", null);
     this.io.in(roomName).emit("end-game", { lostSide: lostSide });
   };
   forfeit = async (userName, roomName, side) => {
-    if (side === "white")
-      await Room.findOneAndUpdate({ name: roomName }, { white: null });
-    if (side === "black")
-      await Room.findOneAndUpdate({ name: roomName }, { black: null });
+    if (side === "white") findAndPatchRoom(roomName, { white: null });
+    if (side === "black") findAndPatchRoom(roomName, { black: null });
     this.io.in(roomName).emit("forfeit", side);
     this.io.in(roomName).emit("receive-message", {
       from: "System",

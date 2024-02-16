@@ -12,6 +12,7 @@ const PORT = 8000;
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
+
 setupSocketRoute(io);
 
 app.use(express.json());
