@@ -16,7 +16,8 @@ class SocketController {
     this.socket = socket;
     this.io = io;
   }
-  disconnect = async () => {
+  disconnect = async () => {};
+  disconnecting = async () => {
     const socketRooms = Array.from(this.socket.rooms.values());
 
     //delete if no one in room
@@ -29,32 +30,30 @@ class SocketController {
 
     // delete user from list
     if (userNameList.includes(this.socket.userName))
-      return userNameList.pop(this.socket.userName);
-  };
+      userNameList.pop(this.socket.userName);
 
-  disconnecting = async () => {};
+    this.socket.disconnect();
+  };
   joinRoom = async (userName, roomName, cb) => {
     try {
       // track user
       if (userNameList.includes(userName))
         return cb({ error: "User available" });
+
       this.socket.userName = userName;
       addUser(userName);
 
       // join room
       const roomExist = findRoomByName(roomName);
-      if (roomExist) {
-        this.socket.join(roomName);
-        return;
-      } else {
+      if (!roomExist) {
         const newRoom = createRoom(roomName);
         if (!newRoom) return cb({ error: "Can't create room" });
-        this.socket.join(roomName);
-        this.io.in(roomName).emit("receive-message", {
-          from: "System",
-          content: `${userName} has joined`,
-        });
       }
+      this.socket.join(roomName);
+      this.io.in(roomName).emit("receive-message", {
+        from: "System",
+        content: `${userName} has joined`,
+      });
     } catch (e) {
       console.log(e);
       cb({ error: "Cannot create room" });
@@ -76,10 +75,14 @@ class SocketController {
         return cb({ error: "Slot is chosen" });
       }
       if (side == "black") {
+        if (room.white === userName)
+          return cb({ error: "You cant chose 2 side!" });
         findAndPatchRoom(roomName, { black: userName });
         this.io.in(roomName).emit("chose-black", userName);
       }
       if (side == "white") {
+        if (room.black === userName)
+          return cb({ error: "You cant chose 2 side!" });
         findAndPatchRoom(roomName, { white: userName });
         this.io.in(roomName).emit("chose-white", userName);
       }
@@ -131,21 +134,22 @@ class SocketController {
     }
   };
   draw = async (roomName) => {
-    findAndPatchRoom(roomName, { black: null, white: null });
+    findAndPatchRoom(roomName, { black: null, white: null, game: null });
     this.io.in(roomName).emit("chose-black", null);
     this.io.in(roomName).emit("chose-white", null);
     this.io.in(roomName).emit("end-game", { draw: true });
   };
   checkMated = async (lostSide, roomName) => {
-    findAndPatchRoom(roomName, { black: null, white: null });
+    findAndPatchRoom(roomName, { black: null, white: null, game: null });
     this.io.in(roomName).emit("chose-black", null);
     this.io.in(roomName).emit("chose-white", null);
-    this.io.in(roomName).emit("end-game", { lostSide: lostSide });
+    this.io.in(roomName).emit("end-game", { lostSide });
   };
   forfeit = async (userName, roomName, side) => {
-    if (side === "white") findAndPatchRoom(roomName, { white: null });
-    if (side === "black") findAndPatchRoom(roomName, { black: null });
+    findAndPatchRoom(roomName, { white: null, game: null, black: null });
     this.io.in(roomName).emit("forfeit", side);
+    const lostSide = side === "black" ? "white" : "black";
+    this.io.in(roomName).emit("end-game", { lostSide });
     this.io.in(roomName).emit("receive-message", {
       from: "System",
       content: `${userName} forfeited`,

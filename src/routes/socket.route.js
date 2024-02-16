@@ -3,9 +3,9 @@ const setupSocketRoute = (io) => {
   io.on("connect", async (socket) => {
     const controller = new SocketController(io, socket);
 
-    socket.on("disconnect", controller.disconnect);
+    // socket.on("disconnect", controller.disconnect);
     // room and chat
-    // socket.once("disconnecting", disconnecting);
+    socket.once("disconnecting", controller.disconnecting);
     socket.on("join-room", controller.joinRoom);
     socket.on("send-message", controller.sendMessage);
     // socket.on("system-message", (content, roomName) => {
