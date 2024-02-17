@@ -7,7 +7,7 @@ const { configDotenv } = require("dotenv");
 
 //setup server
 configDotenv();
-setupDB();
+// setupDB();
 const PORT = 8000;
 const app = express();
 const server = http.createServer(app);

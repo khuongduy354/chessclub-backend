@@ -20,11 +20,26 @@ class SocketController {
   disconnecting = async () => {
     const socketRooms = Array.from(this.socket.rooms.values());
 
-    //delete if no one in room
     for (const _room of socketRooms) {
       let sockets = await this.io.in(_room).fetchSockets();
+      const room = findRoomByName(_room);
       if (!sockets.length) {
+        //delete if no one in room
         deleteRoom(_room);
+      } else if (room) {
+        // reset game if player disconnect
+        const room = findRoomByName(_room);
+        if (
+          room.black === this.socket.userName ||
+          room.white === this.socket.userName
+        ) {
+          const resetedRoom = findAndPatchRoom(_room, {
+            black: null,
+            white: null,
+            game: null,
+          });
+          this.io.in(_room).emit("load-game", resetedRoom);
+        }
       }
     }
 
@@ -50,6 +65,9 @@ class SocketController {
         if (!newRoom) return cb({ error: "Can't create room" });
       }
       this.socket.join(roomName);
+      if (roomExist) {
+        this.io.in(roomName).emit("load-game", roomExist);
+      }
       this.io.in(roomName).emit("receive-message", {
         from: "System",
         content: `${userName} has joined`,
@@ -116,6 +134,7 @@ class SocketController {
       //   },
       //   { new: true }
       // );
+      findAndPatchRoom(roomName, { game: movedFen });
       this.io.in(roomName).emit("update-game", movedFen);
     } catch (e) {
       console.log(e);
